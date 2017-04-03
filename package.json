@@ -1,0 +1,30 @@
+{
+  "name": "dingding-logger",
+  "version": "1.0.0",
+  "description": "receive log and send to dingding chat bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/charlescui/dingding-logger.git"
+  },
+  "keywords": [
+    "dingding"
+  ],
+  "author": "zheng.cuizh@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/charlescui/dingding-logger/issues"
+  },
+  "homepage": "https://github.com/charlescui/dingding-logger#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "~4.13.1",
+    "redis": "^2.7.1",
+    "request": "^2.81.0",
+    "underscore": "^1.8.3"
+  }
+}
