@@ -5,6 +5,7 @@ COPY ./server /opt/dingding-logger/server
 
 WORKDIR /opt/dingding-logger/server
 ENV dingding.bot https://oapi.dingtalk.com/robot/send?access_token=xxx
+ENV redis.uri redis://127.0.0.1:6379/6
 ENV PORT 8080
 ENV NODE_ENV production
 

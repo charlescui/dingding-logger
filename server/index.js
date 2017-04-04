@@ -18,7 +18,7 @@ var Redis = require('redis');
 var http = require('http');
 var _ = require('underscore');
 var app = express();
-var redisClient = Redis.createClient();
+var redisClient = Redis.createClient(process.env['redis.uri']);
 var bodyParser = require('body-parser')
 
 
