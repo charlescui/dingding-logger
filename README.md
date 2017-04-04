@@ -15,4 +15,4 @@
 
 钉钉上效果如下:
 
-![顶顶机器人截图测试]()
+![顶顶机器人截图测试](https://github.com/charlescui/dingding-logger/blob/master/screenshot/IMG_0080.PNG?raw=true)
