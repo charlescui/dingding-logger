@@ -7,6 +7,8 @@
 - dingding.bot
     - 格式如:
         - https://oapi.dingtalk.com/robot/send?access_token=xxx
+    - 申请方法如下:
+        - https://dingtalk.taobao.com/docs/doc.htm?spm=a219a.7629140.0.0.zs6VW5&treeId=257&articleId=105735&docType=1
 
 ### Usage
 
