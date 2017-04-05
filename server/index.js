@@ -18,7 +18,7 @@ var Redis = require('redis');
 var http = require('http');
 var _ = require('underscore');
 var app = express();
-var redisClient = Redis.createClient(process.env['redis.uri']);
+var redisClient = Redis.createClient(process.env['REDIS']);
 var bodyParser = require('body-parser')
 
 
@@ -223,7 +223,7 @@ setInterval(function(){
     bufferPackage(function(content){
         // console.log(content['markdown']['text']);
         var options = {
-            url: process.env['dingding.bot'],
+            url: process.env['DINGDING'],
             headers: {
                 "Content-Type": "application/json"
             },

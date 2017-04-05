@@ -1,10 +1,10 @@
 # 钉钉日志机器人
 
 启动依赖的环境变量:
-- redis.uri
+- REDIS
     - 格式如:
         - redis://127.0.0.1:6379/6
-- dingding.bot
+- DINGDING
     - 格式如:
         - https://oapi.dingtalk.com/robot/send?access_token=xxx
     - 申请方法如下:
