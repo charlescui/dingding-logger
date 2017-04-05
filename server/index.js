@@ -20,7 +20,7 @@ var _ = require('underscore');
 var app = express();
 var redisClient = Redis.createClient(process.env['REDIS']);
 var bodyParser = require('body-parser')
-
+var ZK = require('zkjs')
 
 var LOGBUFFER = "DingDing:LogBuffer"
 // 换行符处理
@@ -219,23 +219,105 @@ var bufferPackage = function(callback){
     });
 }
 
-setInterval(function(){
-    bufferPackage(function(content){
-        // console.log(content['markdown']['text']);
-        var options = {
-            url: process.env['DINGDING'],
-            headers: {
-                "Content-Type": "application/json"
-            },
-            // 格式处理
-            // 将MAGICLINE换成换行符，否则Markdown的格式就乱了，Markdown需要正确的换行符
-            body: JSON.stringify(content).replace(REGMAGICLINE, "\n")
-        };
-        request.post(options, function(error, response, body){
-            console.log(body);
-            if(error){
-                console.log("Error from dingding: "+body);
+var loggerTimerStart = function(){
+    var loggerTimer = setInterval(function(){
+        bufferPackage(function(content){
+            // console.log(content['markdown']['text']);
+            var options = {
+                url: (process.env['DINGDING'] || "https://oapi.dingtalk.com/robot/send?access_token=e9f89999c727cdac3249866075bb894a1e31f5d55bf9898850e83af0f754274c"),
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                // 格式处理
+                // 将MAGICLINE换成换行符，否则Markdown的格式就乱了，Markdown需要正确的换行符
+                body: JSON.stringify(content).replace(REGMAGICLINE, "\n")
+            };
+            request.post(options, function(error, response, body){
+                console.log(body);
+                if(error){
+                    console.log("Error from dingding: "+body);
+                }
+            });
+        })
+    }, 3000);
+
+    return loggerTimer;
+}
+
+/**
+ * 
+ * 使用zookeeper，支持集群部署
+ * 1. 选主(create)
+ *   1.1. 监听主键delete事件
+ *     1.1.1. goto 2.
+ *   1.2. 定时释放主权(del)
+ * 2. 下一次选主
+ * 
+ */
+
+var zk = new ZK({
+    hosts: (process.env.ZK || 'localhost:2181').split(','),
+    root: '/monitor/logger'})
+
+// 选主
+// 主负责执行logger日志的推送工作
+// 每五分钟重新选一次主
+var electionMaster = function(){
+    var registeredTs = Date.now();
+    zk.create(
+        '/dingding',
+        registeredTs,
+        ZK.create.EPHEMERAL,
+        function (err, path) {
+            if (err) {
+                // 如果不是主
+                console.log("election failed: /dingding has created")
+            }else{
+                console.log("election successed: created master at "+registeredTs)
+                // 如果成为主，定时删除自己，以便下次选举
+                deleteMasterTimer();
+                // 执行获取日志发送日志的定时任务
+                global.loggerTimer = loggerTimerStart();
             }
-        });
-    })
-}, 3000)
+            watchMasterEvent();
+        }
+    )
+}
+
+// 订阅该path的事件，以便下次选主
+var watchMasterEvent = function(){
+    zk.get(
+        '/dingding',
+        function (watch) {
+            console.log(watch.path, 'was', watch.type)
+            if(watch.type == "deleted"){
+                // 重新选主
+                electionMaster();
+            }
+        },
+        function (err, value, zstat) {
+            console.log('get and watch, the current value is ', value.toString(), +" "+zstat.toString())
+        }
+    )
+}
+
+// 注册删除主的定时事件
+// 以便下次重新选主
+var deleteMasterTimer = function(){
+    setTimeout(function(){
+        deleteMaster();
+    }, 5*60*1000)
+}
+
+var deleteMaster = function(){
+    zk.del('/dingding', 0, function(err){
+        console.log("deleted /dingding: value ");
+    });
+    if(global.loggerTimer){
+        clearInterval(global.loggerTimer);
+    }
+}
+
+zk.start(function (err) {
+    electionMaster();
+});
